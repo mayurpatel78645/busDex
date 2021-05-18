@@ -1,9 +1,13 @@
 const apiKey = `1FyswLynq7PUOTS5dzBJ`;
 
 const getData = async(url) => {
-  const response = await fetch(url);
-  const data = await response.json();
-  return data;
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+  }catch (err) {
+    console.error(err);
+  }
 }
 
 const getStreets = async(userSearch) => {
@@ -15,7 +19,7 @@ const getStreets = async(userSearch) => {
 }
 
 const getStops = async(streetKey) => {
-  const stopUrl = `https://api.winnipegtransit.com/v3/stops.json?api-key=1FyswLynq7PUOTS5dzBJ&street=${streetKey}&usage=long`;
+  const stopUrl = `https://api.winnipegtransit.com/v3/stops.json?api-key=1FyswLynq7PUOTS5dzBJ&street=${streetKey}`;
   const stopData = await getData(stopUrl);
   const stopsArray = stopData.stops;
   return stopsArray;
@@ -44,27 +48,29 @@ const render2 = async(streetKey) => {
 
 const renderSchedule = async(scheduleArray) => {
   const scheduleContainer = document.querySelector('.schedule-container');
-  scheduleArray.forEach(schedule => {
+  const streetName = document.querySelector('#street-name');
+  scheduleContainer.innerHTML = '';
+  if (scheduleArray[0] === undefined) {
+    scheduleContainer.innerHTML = `No schedule found`
+  }
+  scheduleArray?.forEach(schedule => {
+    console.log(schedule)
     const routeScheduleArray = schedule['stop-schedule']['route-schedules'];
+    streetName.innerHTML = `Displaying results for ${schedule['stop-schedule'].stop.street.name}`
     for (const value of routeScheduleArray) {
-      scheduleContainer.insertAdjacentHTML('beforeend',
-      `
-      <tr>
-        <td>${schedule['stop-schedule'].stop.name}</td>
-        <td>${schedule['stop-schedule'].stop['cross-street'].name}</td>
-        <td>${schedule['stop-schedule'].stop.direction}</td>
-        <td>${value.route.number}</td>
-        <td>${formatTime(value['scheduled-stops'][0].times.arrival.scheduled)}</td>
-      </tr>
-
-      <tr>
-        <td>${schedule['stop-schedule'].stop.name}</td>
-        <td>${schedule['stop-schedule'].stop['cross-street'].name}</td>
-        <td>${schedule['stop-schedule'].stop.direction}</td>
-        <td>${value.route.number}</td>
-        <td>${formatTime(value['scheduled-stops'][1].times.arrival.scheduled)}</td>
-      </tr>
-      `);
+      for (const element of value['scheduled-stops']) {
+        if (element.times.arrival === undefined) return console.error('Arrival time is not mentioned');
+        scheduleContainer.insertAdjacentHTML('beforeend',
+        `
+        <tr>
+          <td>${schedule['stop-schedule'].stop.name}</td>
+          <td>${schedule['stop-schedule'].stop['cross-street'].name}</td>
+          <td>${schedule['stop-schedule'].stop.direction}</td>
+          <td>${value.route.number}</td>
+          <td>${formatTime(element.times.arrival?.scheduled)}</td>
+        </tr>
+        `);
+      }
     }
   });
 }
@@ -76,6 +82,8 @@ const formatTime = (date) => {
 const streets = document.querySelector('.streets');
 
 const renderStreets = (streetsArray) => {
+  streets.innerHTML = '';
+  if (streetsArray[0] === undefined) return streets.innerHTML = `No streets found`;
   streetsArray.forEach(street => {
     streets.insertAdjacentHTML('beforeend', 
     `
@@ -87,17 +95,24 @@ const renderStreets = (streetsArray) => {
 const input = document.querySelector('.input');
 
 input.addEventListener('submit', (e) => {
-  let userSearch = e.target.firstElementChild.value;
-  getStreets(userSearch);
-  render(userSearch);
-  userSearch = '';
+  try {
+    let userSearch = e.target.firstElementChild.value;
+    getStreets(userSearch);
+    render(userSearch);
+  } catch(err) {
+    console.error(err);
+  }
 });
 
 streets.addEventListener('click', (e) => {
-  const eventTarget = e.target;
-  if (eventTarget.nodeName === 'A') {
-    getStops(e.target.dataset.streetKey);
-    render2(e.target.dataset.streetKey);
+  try {
+    const eventTarget = e.target;
+    if (eventTarget.nodeName === 'A') {
+      getStops(e.target.dataset.streetKey);
+      render2(e.target.dataset.streetKey);
+    }
+  } catch (err) {
+    console.error(err);
   }
 });
 
