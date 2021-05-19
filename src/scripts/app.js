@@ -92,6 +92,7 @@ const streets = document.querySelector('.streets');
 
 input.addEventListener('submit', (e) => {
   try {
+    e.preventDefault();
     let userSearch = e.target.firstElementChild.value;
     getStreets(userSearch);
     render(userSearch);
@@ -102,6 +103,7 @@ input.addEventListener('submit', (e) => {
 
 streets.addEventListener('click', (e) => {
   try {
+    e.preventDefault();
     const eventTarget = e.target;
     if (eventTarget.nodeName === 'A') {
       getStops(e.target.dataset.streetKey);
