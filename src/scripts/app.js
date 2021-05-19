@@ -41,7 +41,7 @@ const render = async(userSearch) => {
   renderStreets(streetsArray);
 }
 
-const render2 = async(streetKey) => {
+const renderTable = async(streetKey) => {
   const scheduleArray = await getStopsSchedule(streetKey);
   renderSchedule(scheduleArray);
 }
@@ -50,11 +50,8 @@ const renderSchedule = async(scheduleArray) => {
   const scheduleContainer = document.querySelector('.schedule-container');
   const streetName = document.querySelector('#street-name');
   scheduleContainer.innerHTML = '';
-  if (scheduleArray[0] === undefined) {
-    scheduleContainer.innerHTML = `No schedule found`
-  }
-  scheduleArray?.forEach(schedule => {
-    console.log(schedule)
+  if (scheduleArray[0] === undefined) return scheduleContainer.innerHTML = `No schedule found`;
+  scheduleArray.forEach(schedule => {
     const routeScheduleArray = schedule['stop-schedule']['route-schedules'];
     streetName.innerHTML = `Displaying results for ${schedule['stop-schedule'].stop.street.name}`
     for (const value of routeScheduleArray) {
@@ -79,8 +76,6 @@ const formatTime = (date) => {
   return new Date(date).toLocaleTimeString('en-CA', {hour:'2-digit', minute: '2-digit',hour12: true})
 }
 
-const streets = document.querySelector('.streets');
-
 const renderStreets = (streetsArray) => {
   streets.innerHTML = '';
   if (streetsArray[0] === undefined) return streets.innerHTML = `No streets found`;
@@ -93,6 +88,7 @@ const renderStreets = (streetsArray) => {
 }
 
 const input = document.querySelector('.input');
+const streets = document.querySelector('.streets');
 
 input.addEventListener('submit', (e) => {
   try {
@@ -109,7 +105,7 @@ streets.addEventListener('click', (e) => {
     const eventTarget = e.target;
     if (eventTarget.nodeName === 'A') {
       getStops(e.target.dataset.streetKey);
-      render2(e.target.dataset.streetKey);
+      renderTable(e.target.dataset.streetKey);
     }
   } catch (err) {
     console.error(err);
